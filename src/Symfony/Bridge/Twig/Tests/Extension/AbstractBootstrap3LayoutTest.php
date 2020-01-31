@@ -333,6 +333,21 @@ abstract class AbstractBootstrap3LayoutTest extends AbstractLayoutTest
         );
     }
 
+    public function testCheckboxRowWithHelp()
+    {
+        $form = $this->factory->createNamed('name', 'Symfony\Component\Form\Extension\Core\Type\CheckboxType');
+        $html = $this->renderRow($form->createView(), ['label' => 'foo', 'help' => 'really helpful text']);
+
+        $this->assertMatchesXpath($html,
+'/div
+    [@class="form-group"]
+    [
+        ./span[text() = "[trans]really helpful text[/trans]"]
+    ]
+'
+        );
+    }
+
     public function testSingleChoice()
     {
         $form = $this->factory->createNamed('name', 'Symfony\Component\Form\Extension\Core\Type\ChoiceType', '&a', [
@@ -522,6 +537,31 @@ abstract class AbstractBootstrap3LayoutTest extends AbstractLayoutTest
     [not(@required)]
     [
         ./option[@value="&b"][not(@selected)][.="[trans]Choice&B[/trans]"]
+        /following-sibling::option[@disabled="disabled"][not(@selected)][.="-- sep --"]
+        /following-sibling::option[@value="&a"][@selected="selected"][.="[trans]Choice&A[/trans]"]
+        /following-sibling::option[@value="&b"][.="[trans]Choice&B[/trans]"]
+    ]
+    [count(./option)=4]
+'
+        );
+    }
+
+    public function testSingleChoiceWithSelectedPreferred()
+    {
+        $form = $this->factory->createNamed('name', 'Symfony\Component\Form\Extension\Core\Type\ChoiceType', '&a', [
+            'choices' => ['Choice&A' => '&a', 'Choice&B' => '&b'],
+            'preferred_choices' => ['&a'],
+            'multiple' => false,
+            'expanded' => false,
+        ]);
+
+        $this->assertWidgetMatchesXpath($form->createView(), ['separator' => '-- sep --', 'attr' => ['class' => 'my&class']],
+'/select
+    [@name="name"]
+    [@class="my&class form-control"]
+    [not(@required)]
+    [
+        ./option[@value="&a"][not(@selected)][.="[trans]Choice&A[/trans]"]
         /following-sibling::option[@disabled="disabled"][not(@selected)][.="-- sep --"]
         /following-sibling::option[@value="&a"][@selected="selected"][.="[trans]Choice&A[/trans]"]
         /following-sibling::option[@value="&b"][.="[trans]Choice&B[/trans]"]
@@ -2260,6 +2300,21 @@ abstract class AbstractBootstrap3LayoutTest extends AbstractLayoutTest
                     [@class="my&class"]
                     [@value="foo&bar"]
             ]
+    ]
+'
+        );
+    }
+
+    public function testRadioRowWithHelp()
+    {
+        $form = $this->factory->createNamed('name', 'Symfony\Component\Form\Extension\Core\Type\RadioType', false);
+        $html = $this->renderRow($form->createView(), ['label' => 'foo', 'help' => 'really helpful text']);
+
+        $this->assertMatchesXpath($html,
+'/div
+    [@class="form-group"]
+    [
+        ./span[text() = "[trans]really helpful text[/trans]"]
     ]
 '
         );

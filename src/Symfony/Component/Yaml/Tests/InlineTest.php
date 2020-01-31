@@ -59,6 +59,7 @@ class InlineTest extends TestCase
             ['!php/const PHP_INT_MAX', PHP_INT_MAX],
             ['[!php/const PHP_INT_MAX]', [PHP_INT_MAX]],
             ['{ foo: !php/const PHP_INT_MAX }', ['foo' => PHP_INT_MAX]],
+            ['{ !php/const PHP_INT_MAX: foo }', [PHP_INT_MAX => 'foo']],
             ['!php/const NULL', null],
         ];
     }
@@ -734,6 +735,71 @@ class InlineTest extends TestCase
         return [
             'positive octal number' => [28, '034'],
             'negative octal number' => [-28, '-034'],
+        ];
+    }
+
+    /**
+     * @dataProvider unquotedExclamationMarkThrowsProvider
+     */
+    public function testUnquotedExclamationMarkThrows(string $value)
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessageRegExp('/^Using the unquoted scalar value "!" is not supported\. You must quote it at line 1 \(near "/');
+
+        Inline::parse($value);
+    }
+
+    public function unquotedExclamationMarkThrowsProvider()
+    {
+        return [
+            ['!'],
+            ['! '],
+            ['!  '],
+            [' ! '],
+            ['[!]'],
+            ['[! ]'],
+            ['[!  ]'],
+            ['[!, "foo"]'],
+            ['["foo", !, "ccc"]'],
+            ['{foo: !}'],
+            ['{foo:     !}'],
+            ['{foo: !, bar: "ccc"}'],
+            ['{bar: "ccc", foo: ! }'],
+            ['!]]]'],
+            ['!}'],
+            ['!,}foo,]'],
+            ['! [!]'],
+        ];
+    }
+
+    /**
+     * @dataProvider quotedExclamationMarkProvider
+     */
+    public function testQuotedExclamationMark($expected, string $value)
+    {
+        $this->assertSame($expected, Inline::parse($value));
+    }
+
+    // This provider should stay consistent with unquotedExclamationMarkThrowsProvider
+    public function quotedExclamationMarkProvider()
+    {
+        return [
+            ['!', '"!"'],
+            ['! ', '"! "'],
+            [' !', '" !"'],
+            [' ! ', '" ! "'],
+            [['!'], '["!"]'],
+            [['!  '], '["!  "]'],
+            [['!', 'foo'], '["!", "foo"]'],
+            [['foo', '!', 'ccc'], '["foo", "!", "ccc"]'],
+            [['foo' => '!'], '{foo: "!"}'],
+            [['foo' => '    !'], '{foo: "    !"}'],
+            [['foo' => '!', 'bar' => 'ccc'], '{foo: "!", bar: "ccc"}'],
+            [['bar' => 'ccc', 'foo' => '! '], '{bar: "ccc", foo: "! "}'],
+            ['!]]]', '"!]]]"'],
+            ['!}', '"!}"'],
+            ['!,}foo,]', '"!,}foo,]"'],
+            [['!'], '! ["!"]'],
         ];
     }
 }
