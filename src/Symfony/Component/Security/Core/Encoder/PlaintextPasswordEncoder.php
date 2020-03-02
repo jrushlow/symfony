@@ -17,6 +17,8 @@ use Symfony\Component\Security\Core\Exception\BadCredentialsException;
  * PlaintextPasswordEncoder does not do any encoding.
  *
  * @author Fabien Potencier <fabien@symfony.com>
+ *
+ * @deprecated Encoder to be removed in the next major release.
  */
 class PlaintextPasswordEncoder extends BasePasswordEncoder
 {
